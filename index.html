@@ -87,7 +87,12 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status) {
-                    document.getElementById('result').innerText = `Tracking Status: ${data.status}`;
+                    // If the status is a URL, create a clickable link
+                    if (data.status.startsWith("Track your package directly")) {
+                        document.getElementById('result').innerHTML = `<a href="${data.status}" target="_blank">Click here to track your package on Amazon</a>`;
+                    } else {
+                        document.getElementById('result').innerText = data.status;
+                    }
                 } else {
                     document.getElementById('result').innerText = 'Failed to retrieve tracking information.';
                 }
