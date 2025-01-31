@@ -1,5 +1,4 @@
 import requests
-from bs4 import BeautifulSoup
 import json
 
 def handler(event, context):
@@ -12,24 +11,20 @@ def handler(event, context):
             'body': json.dumps({'error': 'Tracking number is required'})
         }
 
-    # Function to track the UPS package (can be modified for other carriers)
-    def track_ups_package(tracking_number):
-        url = f"https://www.ups.com/track?loc=en_US&tracknum={tracking_number}"
-        response = requests.get(url)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            status = soup.find('div', class_="statusDetails")
-            if status:
-                return status.get_text(strip=True)
-            else:
-                return "Unable to find tracking status. Make sure the tracking number is correct."
-        else:
-            return "Failed to retrieve tracking information."
+    # Check if the tracking number starts with "TBA" (Amazon Logistics)
+    def is_amazon_tracking_number(tracking_number):
+        return tracking_number.startswith("TBA")
 
-    # Get tracking status
-    status = track_ups_package(tracking_number)
+    # Function to generate Amazon tracking page URL
+    def amazon_tracking_url(tracking_number):
+        return f"https://www.amazon.com/gp/help/customer/display.html?nodeId=200465230&tracking_id={tracking_number}"
 
-    # Return the status as JSON
+    # For Amazon packages (starting with TBA), we'll return the Amazon tracking URL
+    if is_amazon_tracking_number(tracking_number):
+        status = f"Track your package directly at Amazon: {amazon_tracking_url(tracking_number)}"
+    else:
+        status = "This tracking number is not recognized as an Amazon Logistics number."
+
     return {
         'statusCode': 200,
         'body': json.dumps({'status': status})
